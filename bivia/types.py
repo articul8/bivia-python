@@ -1,0 +1,224 @@
+from __future__ import annotations
+
+from typing import Any, Optional
+from pydantic import BaseModel
+
+
+class EvidenceSpan(BaseModel):
+    start: int
+    end: int
+    text: str
+
+
+class Evidence(BaseModel):
+    spans: list[EvidenceSpan] = []
+
+
+class Verification(BaseModel):
+    performed: bool
+    result: str
+
+
+class DocumentNote(BaseModel):
+    document: str
+    status: str
+    chars: Optional[int] = None
+    tokens: Optional[int] = None
+    truncated: Optional[bool] = None
+    reason: Optional[str] = None
+
+
+class CategoricalDecision(BaseModel):
+    type: str
+    value: Any = None
+    probability: Optional[float] = None
+    distribution: Optional[dict[str, float]] = None
+    status: str
+    abstain_reason: Optional[str] = None
+    mode: str
+    think_allowed: Optional[bool] = None
+    thought: bool = False
+    grounded: Optional[bool] = None
+    verification: Verification
+    evidence: Evidence
+    latency_ms: float
+    model: str
+    input_tokens: Optional[int] = None
+    image_tokens: Optional[int] = None
+    document_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+    document_notes: Optional[list[DocumentNote]] = None
+
+
+class ScoreDecision(BaseModel):
+    type: str
+    value: Optional[float] = None
+    levels: Optional[dict[str, float]] = None
+    status: str
+    abstain_reason: Optional[str] = None
+    mode: str
+    think_allowed: Optional[bool] = None
+    thought: bool = False
+    grounded: Optional[bool] = None
+    verification: Verification
+    evidence: Evidence
+    latency_ms: float
+    model: str
+    input_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+
+
+class SetDecision(BaseModel):
+    type: str
+    value: list[Any] = []
+    probabilities: Optional[dict[str, float]] = None
+    status: str
+    abstain_reason: Optional[str] = None
+    mode: str
+    thought: bool = False
+    grounded: Optional[bool] = None
+    verification: Verification
+    evidence: Evidence
+    latency_ms: float
+    model: str
+    input_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+
+
+class SpanDecision(BaseModel):
+    type: str
+    value: list[EvidenceSpan] = []
+    status: str
+    abstain_reason: Optional[str] = None
+    mode: str
+    thought: bool = False
+    grounded: Optional[bool] = None
+    verification: Verification
+    evidence: Evidence
+    latency_ms: float
+    model: str
+    input_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+
+
+class GroundRegion(BaseModel):
+    label: str
+    box: list[float]
+    score: Optional[float] = None
+
+
+class GroundDecision(BaseModel):
+    type: str
+    value: list[GroundRegion] = []
+    status: str
+    abstain_reason: Optional[str] = None
+    mode: str
+    thought: bool = False
+    grounded: Optional[bool] = None
+    verification: Verification
+    evidence: Evidence
+    latency_ms: float
+    model: str
+    input_tokens: Optional[int] = None
+    image_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+
+
+class VideoGroundHit(BaseModel):
+    start: Optional[float] = None
+    end: Optional[float] = None
+    peak_t: Optional[float] = None
+    onset_t: Optional[float] = None
+    confidence: float
+    boxes: list[GroundRegion] = []
+
+
+class VideoGroundDecision(BaseModel):
+    type: str
+    kind: str
+    duration_s: float
+    scanned: Optional[int] = None
+    truncated: Optional[bool] = None
+    hits: list[VideoGroundHit] = []
+    input_tokens: Optional[int] = None
+    image_tokens: Optional[int] = None
+    billable_tokens: Optional[int] = None
+
+
+class BatchChoiceAnswer(BaseModel):
+    """A choice answer within a batch response."""
+    type: str
+    choice: Any = None
+    confidence: Optional[float] = None
+    probabilities: Optional[dict[str, float]] = None
+    abstained: bool = False
+
+
+class BatchBooleanAnswer(BaseModel):
+    """A boolean answer within a batch response."""
+    type: str
+    noul: Optional[float] = None
+    probability: Optional[float] = None
+    confidence: Optional[float] = None
+    abstained: bool = False
+
+
+class BatchScoreAnswer(BaseModel):
+    """A score answer within a batch response."""
+    type: str
+    score: Optional[float] = None
+    confidence: Optional[float] = None
+    legend: Optional[dict[str, str]] = None
+    probabilities: Optional[dict[str, float]] = None
+    distribution: Optional[dict[str, float]] = None
+    abstained: bool = False
+
+
+class BatchSetAnswer(BaseModel):
+    """A set (multi-select) answer within a batch response."""
+    type: str
+    selected: Optional[list[Any]] = None
+    probabilities: Optional[dict[str, float]] = None
+    abstained: bool = False
+
+
+class BatchBoxAnswer(BaseModel):
+    """A bounding-box answer within a batch response."""
+    type: str
+    box: Optional[dict[str, float]] = None
+    label: Optional[str] = None
+    confidence: Optional[float] = None
+    abstained: bool = False
+
+
+class BatchUsage(BaseModel):
+    """Token usage for a batch request."""
+    questions: int
+    input_tokens: int = 0
+    output_tokens: Optional[int] = None
+    billable_tokens: int = 0
+
+
+class BatchResponse(BaseModel):
+    """Response for the batch (systemone) endpoint."""
+    model: str
+    answers: dict[str, Any]
+    usage: BatchUsage
+
+
+class ModelInfo(BaseModel):
+    name: str
+    description: Optional[str] = None
+    release_date: Optional[str] = None
+
+
+class ModelList(BaseModel):
+    models: list[ModelInfo]
+
+
+class Capabilities(BaseModel):
+    model: Optional[str] = None
+    decision_types: list[str] = []
+    modalities: Optional[dict[str, Any]] = None
+    evidence: Optional[dict[str, Any]] = None
+    abstention: Optional[bool] = None
