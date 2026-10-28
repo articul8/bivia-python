@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bivia"
+version = "1.0.0"
+description = "Bivia Python SDK — calibrated decisions with confidence"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "MIT"
+dependencies = [
+    "httpx>=0.25",
+    "pydantic>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/articul8/bivia-python"
+Documentation = "https://docs.articul8.ai/bivia"
