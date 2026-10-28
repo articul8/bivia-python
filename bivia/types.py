@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Any, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 
 
 class EvidenceSpan(BaseModel):
@@ -107,18 +107,23 @@ class GroundRegion(BaseModel):
     score: Optional[float] = None
 
 
+def _empty_verification() -> Verification:
+    """Picture-finding replies omit the decision envelope. Keep the same fields."""
+    return Verification(performed=False, result="")
+
+
 class GroundDecision(BaseModel):
     type: str
     value: list[GroundRegion] = []
-    status: str
+    status: str = ""
     abstain_reason: Optional[str] = None
-    mode: str
+    mode: str = ""
     thought: bool = False
     grounded: Optional[bool] = None
-    verification: Verification
-    evidence: Evidence
-    latency_ms: float
-    model: str
+    verification: Verification = Field(default_factory=_empty_verification)
+    evidence: Evidence = Field(default_factory=Evidence)
+    latency_ms: float = 0
+    model: str = ""
     input_tokens: Optional[int] = None
     image_tokens: Optional[int] = None
     billable_tokens: Optional[int] = None
@@ -131,6 +136,14 @@ class VideoGroundHit(BaseModel):
     onset_t: Optional[float] = None
     confidence: float
     boxes: list[GroundRegion] = []
+
+    @field_validator("boxes", mode="before")
+    @classmethod
+    def empty_boxes(cls, value: object) -> object:
+        # The service sends null when a hit has no boxes. Callers still get a list.
+        if value is None:
+            return []
+        return value
 
 
 class VideoGroundDecision(BaseModel):
